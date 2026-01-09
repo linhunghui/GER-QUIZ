@@ -1,0 +1,85 @@
+{% extends 'quiz/base.html' %} {% block content %}
+
+<style>
+  .results-header {
+    text-align: center;
+    padding: 20px;
+    background: #f4f4f4;
+    border-radius: 8px;
+    margin-bottom: 20px;
+  }
+  .score {
+    font-size: 2.5em;
+    font-weight: bold;
+    color: #007bff;
+  }
+  .mistakes-list {
+    margin-top: 30px;
+  }
+  .mistake-item {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+    display: flex;
+    gap: 15px;
+  }
+  .mistake-german,
+  .mistake-english {
+    flex-basis: 50%;
+  }
+  .word {
+    font-size: 1.3em;
+    font-weight: bold;
+    color: #d9534f; /* 標記錯誤為紅色 */
+  }
+  .example {
+    font-style: italic;
+    color: #555;
+    margin-top: 5px;
+    white-space: pre-wrap; /* 尊重換行 */
+  }
+  .home-button {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 12px 25px;
+    font-size: 1.1em;
+    background: #007bff;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+  }
+</style>
+
+<div class="results-header">
+  <h2>測驗完成！</h2>
+  <div class="score">您的分數: {{ score }} / {{ total_questions }}</div>
+</div>
+
+<a href="{% url 'home' %}" class="home-button">返回程度選擇</a>
+
+<div class="mistakes-list">
+  {% if mistakes %}
+  <h3>錯誤題目回顧：</h3>
+  {% for item in mistakes %}
+  <div class="mistake-item">
+    <div class="mistake-german">
+      <div class="word">{{ item.german_word }}</div>
+      {% if item.german_example %}
+      <div class="example">{{ item.german_example }}</div>
+      {% endif %}
+    </div>
+    <div class="mistake-english">
+      <div class="word" style="color: #28a745">{{ item.english_word }}</div>
+      {% if item.english_example %}
+      <div class="example">{{ item.english_example }}</div>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %} {% else %}
+  <h3 style="color: #28a745; margin-top: 20px">太棒了！您全部答對了！🎉</h3>
+  {% endif %}
+</div>
+
+{% endblock %}

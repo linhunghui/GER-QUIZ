@@ -1,0 +1,85 @@
+{% extends 'quiz/base.html' %} {% block content %}
+<style>
+  /* ... (您原有的 .progress-bar, .question-card, .feedback, .next-button 樣式保持不變) ... */
+  .progress-bar { width: 100%; background: #eee; border-radius: 5px; overflow: hidden; }
+  .progress { width: {% widthratio current_progress total_questions 100 %}%; background: #007bff; height: 20px; text-align: center; color: white; border-radius: 5px; transition: width 0.3s; }
+  .question-card { margin-top: 20px; }
+  .german-word { font-size: 1.8em; font-weight: bold; }
+  .german-example { color: #555; font-style: italic; white-space: pre-wrap; margin-top: 5px; }
+  .feedback { padding: 15px; border-radius: 5px; margin-top: 20px; font-size: 1.1em;white-space: pre-wrap; /* <-- ***在這裡新增這一行*** */ }
+  .feedback.correct { background: #d4edda; color: #155724; }
+  .feedback.incorrect { background: #f8d7da; color: #721c24; }
+  .next-button { display: inline-block; padding: 10px 20px; background: #28a745; color: white; text-decoration: none; border-radius: 5px; margin-top: 15px; font-size: 1.1em; }
+
+  /* --- (新增) 選擇題按鈕樣式 --- */
+  .choice-form {
+      margin-top: 20px;
+  }
+  .choice-buttons {
+      display: grid;
+      grid-template-columns: 1fr; /* 在手機上顯示為單欄 */
+      gap: 10px;
+  }
+  /* 在較大螢幕上 (例如 > 600px)，顯示為雙欄 */
+  @media (min-width: 600px) {
+      .choice-buttons {
+          grid-template-columns: 1fr 1fr;
+      }
+  }
+  .choice-button {
+      width: 100%;
+      padding: 15px;
+      font-size: 1.1em;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+  }
+  .choice-button:hover {
+      background-color: #0056b3;
+  }
+</style>
+
+<h2>德文測驗 ({{ current_progress }} / {{ total_questions }})</h2>
+
+<div class="progress-bar">
+  <div class="progress">{{ current_progress }} / {{ total_questions }}</div>
+</div>
+
+<div class="question-card">
+  <div class="german-word">{{ german_word }}</div>
+  {% if german_example %}
+  <div class="german-example">{{ german_example }}</div>
+  {% endif %}
+</div>
+
+{% if is_feedback %}
+
+<div class="feedback {% if is_correct %}correct{% else %}incorrect{% endif %}">
+  {{ feedback }}
+</div>
+<a href="{% url 'quiz_question' %}" class="next-button">
+  {% if current_progress == total_questions %} 查看結果 &rarr; {% else %} 下一題
+  &rarr; {% endif %}
+</a>
+
+{% else %}
+
+<form method="post" action="{% url 'quiz_question' %}" class="choice-form">
+  {% csrf_token %}
+  <div class="choice-buttons">
+    {% for choice in choices %}
+    <button
+      type="submit"
+      name="choice"
+      value="{{ choice }}"
+      class="choice-button"
+    >
+      {{ choice }}
+    </button>
+    {% endfor %}
+  </div>
+</form>
+{% endif %} {% endblock %}

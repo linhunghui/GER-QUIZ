@@ -1,0 +1,61 @@
+{% extends 'quiz/base.html' %}
+
+{% block content %}
+    <h2>歡迎, {{ user.username }}!</h2>
+
+    {% if messages %}
+        <div class_messages>
+            {% for message in messages %}
+                <div class="message {{ message.tags }}" style="padding: 10px; background: #d4edda; border-radius: 5px; margin-bottom: 15px; color: #155724;">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+
+    <p>請選擇您要測驗的程度：</p>
+
+    <style>
+        .level-select { display: flex; flex-wrap: wrap; gap: 15px; }
+        .level-button { display: block; padding: 20px 30px; background-color: #007bff; color: white; text-decoration: none; border-radius: 8px; font-size: 1.2em; font-weight: bold; transition: background-color 0.2s; }
+        .level-button:hover { background-color: #0056b3; }
+        /* (新增) 清除按鈕的樣式 */
+        .clear-button {
+            background: #dc3545; /* 紅色 */
+            border: none;
+            cursor: pointer;
+        }
+        .clear-button:hover {
+            background: #c82333;
+        }
+    </style>
+
+    <div class="level-select">
+        {% for level in available_levels %}
+            <a href="{% url 'start_quiz' level=level %}" class="level-button">
+                開始 {{ level }} 測驗
+            </a>
+        {% empty %}
+            <p>目前資料庫中沒有可用的測驗等級。</p>
+        {% endfor %}
+    </div>
+
+    <div style="margin-top: 30px;">
+        <h3>複習專區</h3>
+        <div class="level-select">
+            <a href="{% url 'start_review' %}" class="level-button" style="background-color: #28a745;">
+                複習我的錯誤
+            </a>
+            
+            <form action="{% url 'clear_errors' %}" method="post" 
+                  onsubmit="return confirm('您確定要清除所有錯誤紀錄嗎？此動作無法復原。');">
+                {% csrf_token %}
+                <button type_submit" class="level-button clear-button">
+                    清除錯誤記憶
+                </button>
+            </form>
+        </div>
+    </div>
+
+{% endblock %}

@@ -1,0 +1,72 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: django_mysql_db
+    restart: always
+    env_file:
+      - .env
+    environment:
+      MYSQL_DATABASE: ${DB_NAME:-vocab_quiz}
+      MYSQL_USER: ${DB_USER:-darren}
+      MYSQL_PASSWORD: ${DB_PASS:-change-me}
+      MYSQL_ROOT_PASSWORD: ${DB_PASS:-change-me}
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./mysql_data:/var/lib/mysql
+      # 新增下面這一行：將本地的 sql 檔案掛載到初始化目錄
+      - ./mysql:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ger-quiz_web
+    restart: always
+    env_file:
+      - .env
+    # 開發時想要同步本機程式碼到容器，可取消下面註解
+    # volumes:
+    #   - ./german_quiz_project:/app
+    ports:
+      - "8000:8000"
+    # 共享靜態檔案讓 nginx 可以直接提供靜態資源
+    volumes:
+      - static_volume:/app/staticfiles
+    #    environment:
+    #      - DB_NAME=vocab_quiz
+    #      - DB_USER=darren
+    #      - DB_PASS=your_password             # <--- 請改為你的密碼
+    #      - DB_HOST=db
+    #      - DB_PORT=3306
+    #      - DEBUG=1
+    depends_on:
+      db:
+        condition: service_healthy # 重要：等到 db 健康檢查通過才啟動 web
+
+  nginx:
+    image: nginx:stable
+    container_name: ger-quiz_nginx
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - static_volume:/app/staticfiles:ro
+      - ./local/ssl:/etc/ssl/private:ro
+    depends_on:
+      - web
+
+volumes:
+  # 如需命名 volume，可在此啟用
+  # mysql_data:
+  #   driver: local
+  static_volume:
+    driver: local
+
+  # nginx 反向代理服務
