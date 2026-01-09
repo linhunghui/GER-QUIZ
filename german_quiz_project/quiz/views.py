@@ -4,6 +4,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login 
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.utils import timezone
 
 # --- (修改) 匯入我們需要的模型 ---
 from .models import Vocabulary, UserError, Level
@@ -17,7 +18,11 @@ def register_view(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
         if form.is_valid():
-            user = form.save()
+            user = form.save(commit=False)
+            # --- (修復) 設置 last_login 以避免 IntegrityError ---
+            user.last_login = timezone.now()
+            user.save()
+            # --- (修復結束) ---
             login(request, user)
             return redirect('home') 
     else:
