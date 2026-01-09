@@ -1,14 +1,20 @@
-# ger-quiz Docker 使用說明
+# 德文測字網站
 
-因女友要讀德文所以 vibecode 了德文測字網站包含 A1/A2 後續會依照女友需要增加 B1/B2 及混合測驗功能
+因女友要讀德文所以 Vibecode 了德文測字網站包含 A1/A2 後續會依照女友需要增加 B1/B2 及混合測驗功能，假如好用的話請跟 Joanne 說聲謝謝並請他好好學習。
 
 ## 功能介紹
 
 ### 1. 單字分級測試
 
+![功能](https://github.com/linhunghui/GER-QUIZ/blob/main/%E5%8A%9F%E8%83%BD1.png)
+
 ### 2. 錯誤提示
 
+![功能](https://github.com/linhunghui/GER-QUIZ/blob/main/%E5%8A%9F%E8%83%BD2.png)
+
 ### 3. 錯誤複習
+
+![功能](https://github.com/linhunghui/GER-QUIZ/blob/main/%E5%8A%9F%E8%83%BD3.png)
 
 # 使用說明
 
