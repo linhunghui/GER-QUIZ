@@ -32,7 +32,6 @@ staticfiles/
 
 # MySQL data and socket
 mysql_data/
-mysql/
 
 # Environment
 .env
