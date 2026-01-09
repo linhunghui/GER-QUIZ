@@ -1,12 +1,22 @@
 # ger-quiz Docker 使用說明
 
-快速在任何機器上啟動，支持 HTTP 與 HTTPS（SSL）。**預設使用 HTTP，無需額外設定。**
+因女友要讀德文所以 vibecode 了德文測字網站包含 A1/A2 後續會依照女友需要增加 B1/B2 及混合測驗功能
+
+## 功能介紹
+
+### 1. 單字分級測試
+
+### 2. 錯誤提示
+
+### 3. 錯誤複習
+
+# 使用說明
 
 ## 1. 複製專案並設定
 
 ```bash
-git clone <your-repo-url> ger-quiz
-cd ger-quiz
+git clone https://github.com/linhunghui/GER-QUIZ.git
+cd GER-QUIZ
 
 # 複製 .env 範例並填入實際值
 cp .env.example .env
@@ -21,7 +31,7 @@ cp .env.example .env
 
 ## 2. HTTP 快速啟動（推薦開發或內部使用）
 
-預設設定使用 HTTP（港口 80）。無需任何額外設定，直接啟動：
+預設設定使用 HTTP。無需任何額外設定，直接啟動：
 
 ```bash
 docker compose up --build -d
@@ -43,7 +53,7 @@ docker compose logs -f web
 
 ### 3.1 準備 SSL 憑證
 
-SSL 憑證需放在 `local/ssl/` 目錄（此目錄已在 `.gitignore` 中，安全地排除在版本控制之外）：
+SSL 憑證需放在 `local/ssl/` 目錄：
 
 ```bash
 mkdir -p local/ssl
@@ -80,7 +90,7 @@ sudo chown $USER:$USER local/ssl/server.*
 
 ### 3.2 啟用 HTTPS 配置
 
-編輯 `nginx/conf.d/german_quiz.conf`，找到註解的 `# server {` 區塊（監聽 443 埠），取消註解所有行：
+編輯 `nginx/conf.d/german_quiz.conf`，找到註解的 `# server {` 區塊（監聽 443 ），取消註解所有行：
 
 **修改前：**
 
@@ -106,7 +116,7 @@ server {
 
 ### 3.3 （可選）啟用 HTTP → HTTPS 自動轉向
 
-在同一個檔案的最後，取消註解最後一個 `# server {` 區塊（監聽 80 埠），以將所有 HTTP 流量自動轉向 HTTPS：
+在同一個檔案的最後，取消註解最後一個 `# server {` 區塊（監聽 80 ），以將所有 HTTP 流量自動轉向 HTTPS：
 
 ```nginx
 server {
@@ -183,7 +193,7 @@ ger-quiz/
 ├── nginx/
 │   └── conf.d/
 │       └── german_quiz.conf  # Nginx 反向代理設定（支持 HTTP 與可選 HTTPS）
-├── local/                     # 敏感資料目錄（不上傳 Git）
+├── local/                     # 敏感資料目錄（選用）
 │   ├── .gitkeep
 │   └── ssl/
 │       ├── server.pem        # SSL 憑證公鑰（若啟用 HTTPS）
@@ -195,9 +205,8 @@ ger-quiz/
 ├── entrypoint.sh             # 容器啟動指令
 ├── requirements.txt          # Python 依賴
 ├── .env.example              # 環境變數範本
-├── .env                      # 實際環境變數（不上傳 Git）
-├── .gitignore                # Git 忽略規則
-└── README.md                 # 本檔案
+├── .gitignore
+└── README.md
 ```
 
 ## 6. 環境變數說明
@@ -207,7 +216,7 @@ ger-quiz/
 | 變數                   | 說明                       | 預設值                                    |
 | ---------------------- | -------------------------- | ----------------------------------------- |
 | `SECRET_KEY`           | Django 密鑰（務必改變）    | `django-insecure-change-me-in-production` |
-| `DEBUG`                | 除錯模式（0=關閉, 1=開啟） | `0`                                       |
+| `DEBUG`                | 除錯模式（0=關閉, 1=開啟） | `1`                                       |
 | `ALLOWED_HOSTS`        | 允許的主機名（逗號分隔）   | `localhost,127.0.0.1`                     |
 | `CSRF_TRUSTED_ORIGINS` | CSRF 信任來源（逗號分隔）  | `http://localhost`                        |
 | `DB_NAME`              | 資料庫名稱                 | `vocab_quiz`                              |
@@ -305,7 +314,7 @@ A:
 
 ```bash
 # 導出 MySQL 資料庫
-docker compose exec db mysqldump -u darren -p vocab_quiz > backup.sql
+docker compose exec db mysqldump -u admin -p vocab_quiz > backup.sql
 
 # 輸入密碼時用你在 .env 中設定的 DB_PASS
 ```
@@ -314,7 +323,7 @@ docker compose exec db mysqldump -u darren -p vocab_quiz > backup.sql
 
 ```bash
 # 導入 SQL 檔案
-docker compose exec -T db mysql -u darren -p vocab_quiz < backup.sql
+docker compose exec -T db mysql -u admin -p vocab_quiz < backup.sql
 ```
 
 ---
