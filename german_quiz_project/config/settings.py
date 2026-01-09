@@ -28,10 +28,12 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-change-me-in-producti
 # 允許透過環境變數控制 DEBUG（在 .env 中設定 DEBUG=1 開啟）
 DEBUG = os.environ.get('DEBUG', '0') == '1'
 
-# 從環境變數讀取，以逗號分隔（例："localhost,127.0.0.1,example.com"）
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
-
-CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', 'http://localhost').split(',')
+if DEBUG:
+    ALLOWED_HOSTS = ['*']
+    CSRF_TRUSTED_ORIGINS = ['*']
+else:
+    ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost').split(',')
+    CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', 'https://yourdomain.com').split(',')
 
 # Application definition
 
