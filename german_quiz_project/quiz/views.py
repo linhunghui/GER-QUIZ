@@ -7,9 +7,12 @@ from django.contrib import messages
 from django.utils import timezone
 
 # --- (修改) 匯入我們需要的模型 ---
-from .models import Vocabulary, UserError, Level
+from .models import Vocabulary, UserError, Level, QuizAttempt
+from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth.models import User
 # --- (新增) 匯入 random 模組 ---
 import random 
+from django.db.models import Avg
 
 # 
 # 1. 註冊視圖 (已完成, 不需修改)
@@ -267,21 +270,145 @@ def quiz_results_view(request):
         # 導回首頁，避免錯誤
         return redirect('home')
 
-    # 2. (重要) 清除 Session 中的測驗資料
-    #    這樣使用者回到首頁才能開始「新」的測驗
-    #    我們保留 'score' 和 'mistakes' 傳給模板
+    # 2. (重要) 儲存測驗紀錄到資料庫 (非 Review 模式才儲存)
+    try:
+        levels_str = request.session.get('levels', '')
+        # 如果不是 Review 模式，建立 QuizAttempt
+        is_review = request.session.get('is_review_mode', False)
+        if not is_review:
+            QuizAttempt.objects.create(
+                user=request.user,
+                score=score,
+                total_questions=total_questions,
+                levels=levels_str or ''
+            )
+    except Exception as e:
+        # 失敗不致命：只印出錯誤（實際環境可改為 logging）
+        print('儲存 QuizAttempt 失敗：', e)
+
+    # 3. 清除 Session 中的測驗資料，讓使用者可以重新開始
     request.session.pop('quiz_questions', None)
     request.session.pop('current_question_index', None)
     request.session.pop('mistakes', None)
     request.session.pop('score', None)
+    request.session.pop('is_review_mode', None)
+    request.session.pop('levels', None)
 
     # 3. 準備 context 並渲染模板
+    # 計算百分制分數（避免除以 0）
+    try:
+        percentage_score = int(round((score / total_questions) * 100)) if total_questions > 0 else 0
+    except Exception:
+        percentage_score = 0
+
     context = {
         'score': score,
         'total_questions': total_questions,
+        'percentage_score': percentage_score,
         'mistakes': mistakes_processed, # 傳入處理過的錯誤列表
     }
     return render(request, 'quiz/quiz_results.html', context)
+
+
+@login_required
+def start_quiz_options_view(request):
+    """處理使用者自訂的測驗選項：可選 1~2 個等級以及題數。"""
+    if request.method != 'POST':
+        return redirect('home')
+
+    # 從表單取得選中的 levels（可能是一或兩個）
+    selected_levels = request.POST.getlist('levels')
+    if not selected_levels:
+        from django.contrib import messages
+        messages.error(request, '請選擇至少一個等級。')
+        return redirect('home')
+
+    # 題數
+    try:
+        num_questions = int(request.POST.get('num_questions', 30))
+    except ValueError:
+        num_questions = 30
+
+    # 抓題：從選定的等級中隨機挑選
+    questions_qs = Vocabulary.objects.filter(level__in=selected_levels).order_by('?')[:num_questions]
+
+    # 當作選項池（用所有選定等級的單字）
+    all_words_pool = list(Vocabulary.objects.filter(level__in=selected_levels))
+
+    serialized_questions = []
+    import random
+    for q in questions_qs:
+        correct_answer = q.clean_english_word
+        distractors_pool = [
+            word.clean_english_word
+            for word in all_words_pool
+            if word.id != q.id and word.clean_english_word != correct_answer
+        ]
+
+        if len(set(distractors_pool)) < 3:
+            distractors_pool = [
+                word.clean_english_word
+                for word in Vocabulary.objects.all()
+                if word.id != q.id and word.clean_english_word != correct_answer
+            ]
+
+        distractors = random.sample(list(set(distractors_pool)), 3)
+        choices = distractors + [correct_answer]
+        random.shuffle(choices)
+
+        serialized_questions.append({
+            'id': q.id,
+            'german_content': q.german_content,
+            'english_answer': correct_answer,
+            'full_english_hint': q.english_content,
+            'choices': choices,
+        })
+
+    # 初始化 session
+    request.session['quiz_questions'] = serialized_questions
+    request.session['current_question_index'] = 0
+    request.session['score'] = 0
+    request.session['mistakes'] = []
+    request.session['is_review_mode'] = False
+    request.session['levels'] = ','.join(selected_levels)
+
+    return redirect('quiz_question')
+
+
+@staff_member_required
+def attempts_summary_view(request):
+    """後台檢視：列出所有使用者的測驗次數與成績摘要（需 staff 權限）。"""
+    users = User.objects.all().order_by('username')
+    summary = []
+    for u in users:
+        attempts_qs = QuizAttempt.objects.filter(user=u).order_by('-timestamp')
+        attempts_count = attempts_qs.count()
+        latest = attempts_qs.first()
+        # 計算每次測驗的百分比成績，並計算平均百分比
+        attempts_raw = list(attempts_qs)
+        attempts_info = []
+        percent_list = []
+        for a in attempts_raw:
+            try:
+                p = int(round((a.score / a.total_questions) * 100)) if a.total_questions > 0 else 0
+            except Exception:
+                p = 0
+            attempts_info.append({'obj': a, 'percent': p})
+            percent_list.append(p)
+
+        avg_percent = int(round(sum(percent_list) / len(percent_list))) if percent_list else None
+        avg_percent_display = f"{avg_percent}%" if avg_percent is not None else '-'
+
+        summary.append({
+            'user': u,
+            'attempts_count': attempts_count,
+            'latest_attempt': latest,
+            'avg_percent': avg_percent,
+            'avg_percent_display': avg_percent_display,
+            'attempts': attempts_info,
+        })
+
+    return render(request, 'quiz/attempts_summary.html', {'summary': summary})
 # 6. 開始 "Review" 測驗 (功能4 - Review) - ***新增***
 # 
 @login_required

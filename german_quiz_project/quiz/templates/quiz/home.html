@@ -31,15 +31,61 @@
         }
     </style>
 
+    <!-- 新增：自訂測驗選項表單（可勾選至多兩個等級，並選擇題數） -->
+    <form action="{% url 'start_quiz_options' %}" method="post" style="margin-bottom:20px;">
+        {% csrf_token %}
+        <div style="margin-bottom:10px;">可選擇 1~2 個等級（勾選後按開始）：</div>
+        <div class="level-select" id="level-checkboxes">
+            {% for level in available_levels %}
+                <label style="display:block;">
+                    <input type="checkbox" name="levels" value="{{ level }}"> {{ level }}
+                </label>
+            {% empty %}
+                <p>目前資料庫中沒有可用的測驗等級。</p>
+            {% endfor %}
+        </div>
+
+        <div style="margin-top:12px;">
+            <label>題數：
+                <select name="num_questions">
+                    <option value="10">10 題</option>
+                    <option value="20">20 題</option>
+                    <option value="30" selected>30 題</option>
+                    <option value="50">50 題</option>
+                </select>
+            </label>
+        </div>
+
+        <div style="margin-top:12px;">
+            <button type="submit" class="level-button">開始自訂測驗</button>
+        </div>
+    </form>
+
+    <!-- 保留單一按鈕快速啟動各等級的功能 -->
     <div class="level-select">
         {% for level in available_levels %}
             <a href="{% url 'start_quiz' level=level %}" class="level-button">
                 開始 {{ level }} 測驗
             </a>
-        {% empty %}
-            <p>目前資料庫中沒有可用的測驗等級。</p>
         {% endfor %}
     </div>
+
+    <script>
+        // 限制 checkbox 最多選 2 個
+        (function(){
+            const container = document.getElementById('level-checkboxes');
+            if(!container) return;
+            const checkboxes = container.querySelectorAll('input[type=checkbox]');
+            checkboxes.forEach(cb => cb.addEventListener('change', ()=>{
+                const checked = Array.from(checkboxes).filter(c=>c.checked);
+                if(checked.length>2){
+                    // 取消剛剛勾選的一個（最後一個）
+                    event.target.checked = false;
+                    alert('最多只能選擇兩個等級。');
+                }
+            }));
+        })();
+    </script>
 
     <div style="margin-top: 30px;">
         <h3>複習專區</h3>

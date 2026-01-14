@@ -54,7 +54,10 @@
 
 <div class="results-header">
   <h2>測驗完成！</h2>
-  <div class="score">您的分數: {{ score }} / {{ total_questions }}</div>
+  <div class="score">您的分數: {{ percentage_score }} 分</div>
+  <div style="margin-top: 6px; font-size: 1.1em">
+    答對：{{ score }} / {{ total_questions }} 題
+  </div>
 </div>
 
 <a href="{% url 'home' %}" class="home-button">返回程度選擇</a>

@@ -191,6 +191,41 @@ docker compose exec web python manage.py shell
 docker compose exec db mysql -u darren -p vocab_quiz
 ```
 
+### 管理後台與管理員專用摘要頁
+
+- Django 管理介面（Admin）： `http://localhost:8000/admin/` （需 `is_staff` 或 superuser）
+- 我新增的管理員專用摘要頁（需 `is_staff`）： `http://localhost:8000/staff/attempts/`
+
+註：若使用者尚未為 staff，可在主機上執行：
+
+```bash
+docker compose exec web python manage.py shell -c "from django.contrib.auth.models import User; u=User.objects.get(username='YOUR_USERNAME'); u.is_staff=True; u.save()"
+```
+
+### 需要重啟 Docker 嗎？
+
+- 只修改內容（templates、靜態檔）且您有把專案原始碼掛載到容器（`volumes` 映射），通常不需要重建映像，只要重啟容器或讓變更自動生效即可。
+- 若您是使用本專案預設的方式（沒有把 `german_quiz_project/` 掛載到容器），那麼每次修改 Python 代碼或新增模型、管理後台程式時，需重建映像並重啟服務：
+
+```bash
+docker compose up --build -d
+```
+
+- 若只是套用資料庫遷移（migrations）或建立 superuser，無需重建映像，只要在容器內執行相對應的管理命令：
+
+```bash
+docker compose exec web python manage.py makemigrations
+docker compose exec web python manage.py migrate
+docker compose exec web python manage.py createsuperuser
+```
+
+- 若您更新環境變數（`.env`）或 nginx 設定，建議使用：
+
+```bash
+docker compose down
+docker compose up --build -d
+```
+
 ## 5. 目錄結構說明
 
 ```

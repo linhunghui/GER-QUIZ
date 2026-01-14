@@ -85,3 +85,26 @@ class UserError(models.Model):
         # 建立一個「聯合唯一索引」，確保同一個使用者對同一個單字的錯誤只會被記錄一次
         # 這樣 "Review" 模式才不會有重複的題目
         unique_together = ('user', 'vocabulary')
+
+
+class QuizAttempt(models.Model):
+    """儲存每次測驗的結果 (每一回測驗即為一筆記錄)。
+
+    - user: 參與測驗的使用者
+    - score: 使用者回答正確的題數
+    - total_questions: 該次測驗總題數
+    - levels: 以逗號分隔的程度字串 (例如 "A1"、"A1,A2")
+    - timestamp: 測驗時間
+    """
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="使用者")
+    score = models.IntegerField(verbose_name="分數")
+    total_questions = models.IntegerField(verbose_name="題數")
+    levels = models.CharField(max_length=32, verbose_name="等級(逗號分隔)")
+    timestamp = models.DateTimeField(auto_now_add=True, verbose_name="測驗時間")
+
+    def __str__(self):
+        return f"{self.user.username} - {self.score}/{self.total_questions} ({self.levels})"
+
+    class Meta:
+        verbose_name = "測驗紀錄"
+        verbose_name_plural = "測驗紀錄"

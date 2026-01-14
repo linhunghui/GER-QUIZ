@@ -46,6 +46,11 @@
 
       {% if user.is_authenticated %}
       <span>您好, {{ user.username }}!</span>
+      {% if user.is_staff %}
+      <a href="{% url 'attempts_summary' %}" style="margin-left: 12px"
+        >後台：測驗摘要</a
+      >
+      {% endif %}
 
       <form action="{% url 'logout' %}" method="post" style="display: inline">
         {% csrf_token %}

@@ -1,0 +1,119 @@
+{% extends 'quiz/base.html' %} {% block content %}
+<h2>測驗摘要（管理員專用）</h2>
+<table style="width: 100%; border-collapse: collapse">
+  <thead>
+    <tr>
+      <th style="text-align: left; padding: 8px; border-bottom: 1px solid #ddd">
+        使用者
+      </th>
+      <th style="text-align: left; padding: 8px; border-bottom: 1px solid #ddd">
+        測驗次數
+      </th>
+      <th style="text-align: left; padding: 8px; border-bottom: 1px solid #ddd">
+        平均分數
+      </th>
+      <th style="text-align: left; padding: 8px; border-bottom: 1px solid #ddd">
+        最近一次成績
+      </th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in summary %}
+    <tr>
+      <td style="padding: 8px; border-bottom: 1px solid #eee">
+        {{ row.user.username }}
+      </td>
+      <td style="padding: 8px; border-bottom: 1px solid #eee">
+        {{ row.attempts_count }}
+      </td>
+      <td style="padding: 8px; border-bottom: 1px solid #eee">
+        {{ row.avg_percent_display }}
+      </td>
+      <td style="padding: 8px; border-bottom: 1px solid #eee">
+        {% if row.latest_attempt %}{{ row.latest_attempt.score }}/{{
+        row.latest_attempt.total_questions }} ({{ row.latest_attempt.levels }})
+        on {{ row.latest_attempt.timestamp }}{% else %}-{% endif %}
+      </td>
+    </tr>
+    <tr>
+      <td
+        colspan="4"
+        style="
+          padding: 6px 8px 14px 8px;
+          background: #fafafa;
+          border-bottom: 1px solid #eee;
+        "
+      >
+        {% if row.attempts %}
+        <strong>歷次成績：</strong>
+        <table style="width: 100%; margin-top: 6px; border-collapse: collapse">
+          <thead>
+            <tr>
+              <th
+                style="
+                  text-align: left;
+                  padding: 6px;
+                  border-bottom: 1px solid #ddd;
+                  width: 180px;
+                "
+              >
+                時間
+              </th>
+              <th
+                style="
+                  text-align: left;
+                  padding: 6px;
+                  border-bottom: 1px solid #ddd;
+                "
+              >
+                等級
+              </th>
+              <th
+                style="
+                  text-align: left;
+                  padding: 6px;
+                  border-bottom: 1px solid #ddd;
+                "
+              >
+                分數
+              </th>
+              <th
+                style="
+                  text-align: left;
+                  padding: 6px;
+                  border-bottom: 1px solid #ddd;
+                "
+              >
+                百分比
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for ai in row.attempts %}
+            <tr>
+              <td style="padding: 6px; border-bottom: 1px solid #eee">
+                {{ ai.obj.timestamp }}
+              </td>
+              <td style="padding: 6px; border-bottom: 1px solid #eee">
+                {{ ai.obj.levels }}
+              </td>
+              <td style="padding: 6px; border-bottom: 1px solid #eee">
+                {{ ai.obj.score }}/{{ ai.obj.total_questions }}
+              </td>
+              <td style="padding: 6px; border-bottom: 1px solid #eee">
+                {{ ai.percent }}%
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <em>無測驗紀錄</em>
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% endblock %} padding: 8px;

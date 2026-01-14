@@ -23,6 +23,8 @@ urlpatterns = [
 
     # 1. 開始測驗 (點擊 A1 後觸發, 負責準備題目)
     path('quiz/start/<str:level>/', views.start_quiz_view, name='start_quiz'),
+    # 另一個路徑：從首頁表單 POST 進來，可混合等級並指定題數
+    path('quiz/start/', views.start_quiz_options_view, name='start_quiz_options'),
     
     # 2. 測驗問題頁面 (顯示問題並檢查答案)
     #    (我們在下一步會實作這個 view)
@@ -39,6 +41,8 @@ urlpatterns = [
 
     # 2. 清除錯誤紀錄 (清除記憶)
     path('review/clear/', views.clear_errors_view, name='clear_errors'),
+    # 管理員檢視：所有使用者的嘗試摘要（避免與 Django admin/ 衝突）
+    path('staff/attempts/', views.attempts_summary_view, name='attempts_summary'),
     
     # --- ***新增結束*** ---
 ]
