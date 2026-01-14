@@ -200,6 +200,12 @@ docker compose exec db mysql -u darren -p vocab_quiz
 
 ```bash
 docker compose exec web python manage.py shell -c "from django.contrib.auth.models import User; u=User.objects.get(username='YOUR_USERNAME'); u.is_staff=True; u.save()"
+
+# 若要將特定使用者 `darren` 設為 staff（非 superuser），執行：
+docker compose exec web python3 manage.py shell -c "from django.contrib.auth.models import User; u=User.objects.get(username='darren'); u.is_staff=True; u.is_superuser=False; u.save()"
+
+# 產生並套用資料庫遷移（建立缺少的資料表）：
+docker compose exec web bash -lc "python3 manage.py makemigrations --noinput && python3 manage.py migrate --noinput"
 ```
 
 ### 需要重啟 Docker 嗎？
